@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RO Visit MoM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#EAF4FB; --surface:#FFFFFF; --surface-2:#F4F9FD; --ink:#1B2B38; --muted:#5E7282; --line:#CFE0EC;
+  --brand:#1F74B5; --brand-ink:#FFFFFF; --brand-soft:#DCEEFB; --accent:#F2A93B; --accent-soft:#FFF3DF; --accent-ink:#7A4E00;
+  --danger:#C0392B; --ok:#23845A; --ok-soft:#E1F5EA; --warn-soft:#FFF3DF;
+  --paper:#FFFFFF; --paper-ink:#111820; --paper-line:#C9D1D8; --sig-ink:#0B2A6F;
+  --shadow:0 1px 2px rgba(31,116,181,.06),0 6px 18px rgba(31,116,181,.08);
+  --f-display:"Archivo","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);padding-inline:16px;padding-block:0 96px}
+.wrap{max-width:880px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;padding-block:22px 16px}
+.top .eyebrow{font:600 11px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.top h1{font-size:26px;font-weight:700;margin-top:6px;color:#154F7C}
+.top h1 span{color:var(--accent)}
+.momno{font:500 13px var(--f-mono);background:var(--surface);border:1px solid var(--line);padding:6px 10px;border-radius:6px;color:var(--muted)}
+.momno b{color:var(--ink);font-weight:500}
+
+/* sections */
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);margin-bottom:14px}
+.sec-h{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line);background:var(--brand-soft);border-radius:10px 10px 0 0}
+.step{width:26px;height:26px;border-radius:50%;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font:600 13px var(--f-display);flex:none}
+.sec-h h2{font-size:17px;font-weight:600;color:#154F7C}
+.sec-h .aside{margin-left:auto;font-size:12.5px;color:var(--muted)}
+.sec-b{padding:16px 18px;display:grid;gap:14px}
+
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+label.f{display:grid;gap:5px;font-size:12.5px;font-weight:500;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:9px 11px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:84px}
+input:focus,select:focus,textarea:focus,button:focus-visible,.pill:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+
+button{font:600 14px var(--f-body);border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;justify-content:center}
+button:hover{border-color:var(--brand)}
+button.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+button.primary:hover{filter:brightness(1.08)}
+button.accent{background:var(--accent);color:#231800;border-color:var(--accent)}
+button.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:6px 8px}
+button.ghost:hover{color:var(--ink);border-color:var(--line)}
+button.sm{font-size:12.5px;padding:6px 10px}
+button:disabled{opacity:.45;cursor:not-allowed}
+
+/* RO card */
+.ro-pick{display:grid;gap:10px;grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+@media (max-width:560px){.ro-pick{grid-template-columns:1fr}}
+.ro-card{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 18px;background:var(--surface-2);border:1px dashed var(--line);border-radius:8px;padding:12px 14px}
+.ro-card div{display:grid;gap:1px;min-width:0}
+.ro-card dt{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ro-card dd{margin:0;font-weight:500;overflow-wrap:anywhere}
+.master-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;gap:6px;font:600 11px var(--f-body);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent-ink)}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}
+.file-btn{position:relative;overflow:hidden}
+.file-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+/* points */
+.composer{display:grid;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:12px}
+.composer .row{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));align-items:end}
+.composer textarea{background:var(--surface)}
+.composer select,.composer input{background:var(--surface)}
+.hint{font-size:12px;color:var(--muted)}
+ol.points{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:pt}
+ol.points li{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:start;border:1px solid var(--line);border-radius:8px;padding:10px 10px 10px 8px;background:var(--surface)}
+ol.points li.editing{border-color:var(--accent);background:var(--accent-soft)}
+.pn{font:600 14px var(--f-mono);color:var(--brand);text-align:right;padding-top:1px}
+.ptxt{white-space:pre-wrap;overflow-wrap:anywhere}
+.pmeta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{font-size:11.5px;font-weight:500;padding:2px 8px;border-radius:5px;border:1px solid var(--line);color:var(--muted);background:var(--surface-2)}
+.chip.by-Dealer{border-color:#C98B00;color:var(--accent-ink);background:var(--accent-soft)}
+.chip.by-Vendor{border-color:#4F7FA8;color:var(--brand)}
+.chip.by-BPCL{border-color:var(--ok);color:var(--ok);background:var(--ok-soft)}
+.pact{display:flex;gap:2px}
+@media (max-width:600px){ol.points li{grid-template-columns:26px minmax(0,1fr)}.pact{grid-column:2;justify-content:flex-end;border-top:1px solid var(--line);padding-top:4px}}
+.pact button{padding:5px 7px;font-size:13px}
+.empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:8px}
+
+/* signatures */
+.sigs{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.sig{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface);display:grid}
+.sig-h{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--surface-2);font:600 12px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
+.pad-wrap{position:relative;background:#fff}
+.pad-wrap canvas{display:block;width:100%;height:150px;touch-action:none;cursor:crosshair}
+.pad-wrap .ph{position:absolute;inset:auto 0 18px 0;text-align:center;color:#9AA7B1;font-size:13px;pointer-events:none}
+.pad-wrap .base{position:absolute;left:14px;right:14px;bottom:40px;border-bottom:1px dashed #B8C3CC;pointer-events:none}
+.pad-wrap.signed .ph{display:none}
+.sig-f{display:grid;gap:8px;padding:10px}
+.sig-f input{padding:7px 9px;font-size:14px}
+
+/* register */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table.reg{border-collapse:collapse;width:100%;font-size:13px;min-width:620px}
+table.reg th,table.reg td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.reg th{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);font-weight:600}
+table.reg td.n{text-align:right;font-family:var(--f-mono)}
+table.reg tr:last-child td{border-bottom:0}
+
+/* bottom bar */
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));z-index:20;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.bar-in{max-width:880px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar .status{font-size:12.5px;color:var(--muted);margin-right:auto;display:flex;gap:6px;flex-wrap:wrap}
+.dot{display:inline-flex;align-items:center;gap:5px}
+.dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--line)}
+.dot.on::before{background:var(--ok)}
+
+/* modal / preview */
+.modal{position:fixed;inset:0;background:rgba(8,16,22,.88);z-index:40;display:flex;flex-direction:column;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.modal-bar{max-width:820px;width:100%;margin:0 auto 10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.modal-bar h3{color:#fff;font-size:16px;margin-right:auto}
+.modal-scroll{overflow:auto;flex:1}
+.paper{background:var(--paper);color:var(--paper-ink);max-width:794px;margin:0 auto;padding:36px 40px;font:12.5px/1.45 "Helvetica Neue",Arial,sans-serif;border-radius:2px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+@media (max-width:560px){.paper{padding:22px 16px}}
+.paper .ph1{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:2px solid #0E3B5C;padding-bottom:10px}
+.paper .org{font-weight:700;font-size:15px;color:#0E3B5C;letter-spacing:.02em}
+.paper .sub{font-size:11.5px;color:#4B5963}
+.paper .doc-t{text-align:center;font-weight:700;font-size:14px;letter-spacing:.08em;margin:14px 0 10px}
+.paper table{width:100%;border-collapse:collapse;margin-bottom:12px}
+.paper td,.paper th{border:1px solid var(--paper-line);padding:5px 7px;vertical-align:top;text-align:left}
+.paper th{background:#E9EEF2;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.paper td.k{background:#F4F6F8;font-weight:600;width:22%;white-space:nowrap}
+.paper .sec-t{font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#0E3B5C;margin:14px 0 6px}
+.paper .psig{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+.paper .psig > div{border:1px solid var(--paper-line);padding:8px;display:grid;gap:2px;align-content:start}
+.paper .psig .who{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#4B5963;font-weight:700}
+.paper .psig .img{height:62px;border-bottom:1px solid #8C98A2;display:flex;align-items:flex-end;justify-content:center;margin:4px 0 6px}
+.paper .psig img{max-height:60px;max-width:100%}
+.paper .psig .miss{font-size:11px;color:#B3261E;align-self:center}
+.paper .psig .nm{font-weight:700;overflow-wrap:anywhere}
+.paper .psig .ds{font-size:11px;color:#333;overflow-wrap:anywhere}
+@media (max-width:560px){.paper .psig{grid-template-columns:1fr}}
+.paper .foot{margin-top:16px;font-size:10px;color:#6B7780;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.checklist{max-width:820px;width:100%;margin:0 auto 10px;display:flex;gap:6px;flex-wrap:wrap}
+.checklist span{font-size:12px;padding:3px 9px;border-radius:99px;background:#FDF3E1;color:#6A4700}
+.checklist span.ok{background:#E3F3EA;color:#1E7B4F}
+
+.note{font-size:13px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-size:13.5px;z-index:60;max-width:calc(100% - 32px);box-shadow:var(--shadow)}
+@media (prefers-reduced-motion:no-preference){.toast{animation:up .18s ease-out}@keyframes up{from{transform:translate(-50%,8px);opacity:0}}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">BPCL Retail · Belgaum Territory · Engineering</div>
+      <h1>RO Visit <span>MoM</span></h1>
+    </div>
+    <div class="momno">MoM No. <b id="momNo">—</b></div>
+  </header>
+
+  <!-- 1. RO -->
+  <section class="sec">
+    <div class="sec-h"><div class="step">1</div><h2>Retail Outlet &amp; visit</h2>
+      <span class="aside">172 ROs</span></div>
+    <div class="sec-b">
+      <div class="ro-pick">
+        <label class="f">Search
+          <input id="roSearch" type="search" placeholder="Code, name, place…" autocomplete="off">
+        </label>
+        <label class="f">Retail Outlet
+          <select id="roSelect"></select>
+        </label>
+      </div>
+      <dl class="ro-card" id="roCard"></dl>
+      <div class="grid">
+        <label class="f">Visit date<input id="vDate" type="date"></label>
+        <label class="f">Purpose of visit
+          <select id="vPurpose">
+            <option>Routine inspection</option><option>Breakdown / complaint attendance</option><option>Automation (MPD/ATG) check</option>
+            <option>Safety audit</option><option>Statutory compliance (PESO / LM)</option><option>Project / NRO work</option><option>Preventive maintenance</option><option>Other</option>
+          </select>
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Points -->
+  <section class="sec">
+    <div class="sec-h"><div class="step">2</div><h2>Discussion points</h2><span class="aside" id="ptCount"></span></div>
+    <div class="sec-b">
+      <div class="composer">
+        <label class="f"><span id="compLabel">Point / observation</span>
+          <textarea id="pText" placeholder="e.g. Nozzle 2 of MPD-1 showing short delivery of 40 ml in 5 L measure; vendor to recalibrate."></textarea>
+        </label>
+        <div class="row">
+          <label class="f">Area
+            <select id="pArea"><option>MPD / Dispensing</option><option>ATG / Automation</option><option>Safety</option><option>Electrical / DG</option><option>Civil / Canopy</option><option>Statutory / LM</option><option>Housekeeping / Facilities</option><option>EV / CNG</option><option>Other</option></select>
+          </label>
+          <label class="f">Action by
+            <select id="pBy"><option>Dealer</option><option>Vendor</option><option>BPCL</option><option>Joint</option><option>Noted</option></select>
+          </label>
+          <label class="f">Target date<input id="pDate" type="date"></label>
+          <div style="display:flex;gap:6px">
+            <button class="primary" id="addPt" type="button" style="flex:1">Add point</button>
+            <button id="cancelEdit" type="button" hidden>Cancel</button>
+          </div>
+        </div>
+        <div class="hint">Ctrl + Enter adds the point. Points are numbered in the order they appear in the MoM.</div>
+      </div>
+      <ol class="points" id="pList"></ol>
+      <label class="f">General remarks (optional)<textarea id="remarks" style="min-height:64px" placeholder="Any overall remark, next visit date, etc."></textarea></label>
+    </div>
+  </section>
+
+  <!-- 3. Signatures -->
+  <section class="sec">
+    <div class="sec-h"><div class="step">3</div><h2>Signatures</h2><span class="aside">Sign with finger or mouse</span></div>
+    <div class="sec-b">
+      <div class="sigs" id="sigs"></div>
+    </div>
+  </section>
+
+  <!-- Register -->
+  <section class="sec">
+    <div class="sec-h"><h2 style="font-size:16px">Visit register</h2><span class="aside">For the monthly report</span></div>
+    <div class="sec-b">
+      <div class="tbl-wrap"><table class="reg"><thead><tr><th>Date</th><th>MoM No.</th><th>RO</th><th>City</th><th>Purpose</th><th>Vendor</th><th style="text-align:right">Points</th></tr></thead><tbody id="regBody"></tbody></table></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="sm" id="regCsv" type="button">Export register (Excel/CSV)</button>
+        <span class="hint">Each MoM you download is added here automatically. The register is kept in this browser only.</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="bar"><div class="bar-in">
+  <div class="status" id="status"></div>
+  <button class="ghost sm" id="newBtn" type="button">New MoM</button>
+  <button id="prevBtn" type="button">Preview</button>
+  <button class="primary" id="pdfBtn" type="button">Download PDF</button>
+</div></div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-bar">
+    <h3>Preview</h3>
+    <button class="sm" id="driveBtn" type="button">Save to Google Drive</button>
+    <button class="sm primary" id="pdfBtn2" type="button">Download PDF</button>
+    <button class="sm" id="closePrev" type="button">Close</button>
+  </div>
+  <div class="checklist" id="checklist"></div>
+  <div class="modal-bar" id="driveNote" hidden><div class="note" style="background:#fff;color:#333;width:100%">Direct upload to Google Drive needs this tool running as a Google Apps Script web app under your Google account (it then saves each PDF into a chosen Drive folder). In this demo, use <b>Download PDF</b> and upload the file to your Drive folder.</div></div>
+  <div class="modal-scroll"><div class="paper" id="paper"></div></div>
+</div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const plusDays = n => { const d = new Date(); d.setDate(d.getDate()+n); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const fmtDate = iso => { if(!iso) return ""; const [y,m,d] = iso.split("-"); return `${d}-${m}-${y}`; };
+function toast(msg){ const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; document.body.appendChild(t); setTimeout(()=>t.remove(), 2600); }
+
+/* ---------- RO master (BL data: Sales Groups 236 & 960) ---------- */
+// [RO code, RO name, City, Sales Group, BL RO control category, Class of market]
+const MASTER_RAW = [["176378","ADARSH PETROLEUM","Laxmeshwar","236","DC","C"],["170051","ALIYA PETROLEUMS","Hubli","960","CC","D1"],["244774","ANJANEYA FUELS","Tahiriyal","960","CC","C"],["230300","ANNADANI PETROLEUMS","Naregal","236","CC","D2"],["150360","ANNAPOORNESHWARI FUELS","Hebsur","236","DC","C"],["185375","ANNAPOORNESWARI FUELS","Tumminakatti","236","DC","E"],["211372","ATHARV PETROLEUMS","Hubli","960","DC","B"],["174810","B S KALLUR PETROLEUM","Hubli","960","CC","B"],["214283","BARKI PETROLEUM","Byadagi","236","DC","C"],["183535","BASAVASHREE PETROLEUM","Hirebendigeri","236","DC","E"],["192576","BASAVESHWAR PETROLEUM","Mulgund","236","DC","C"],["194274","BP RANEBENNUR II","Ranebennur","236","CO","D1"],["223506","BP-KESHAWAPUR","Hubli","960","CO","B"],["135822","BP-KOTUR-1","Kotur","960","CO","D1"],["135823","BP-KOTUR-2","Kotur","960","CO","D1"],["158207","BP-RANEBENNUR - I","Ranebennur","236","CO","D1"],["116256","C.M. BENNI","Savanoor","236","CC","D2"],["116254","C.V.BAGALKOTI & SONS","Hubli","960","CC","D1"],["143742","DELUXE ROADLINES PVT BLOCKED","Pale Village Nh-4","236","DC","C"],["183538","DESAI PETROLEUMS","Halageri","236","DC","D1"],["143280","DESHPANDE PETROLEUM","Hubli","960","CC","B"],["265876","DEVANK PETROLEUM","Gadag","236","CC","E"],["141349","DEVEN AGENCIES","Hubli","960","DC","B"],["147677","DEVENDRA FILLING STATION","Ron","960","CC","D2"],["213054","DIXIT AGENCIES","Annigeri","960","DC","E"],["266579","DODDAGANIGER PETROLEUM","Hebsur","960","DC","D1"],["186105","DURGALAXMI PETROLEUM","Kundgol","960","DC","D2"],["116262","F.M.HASBI","Nargund","960","CC","D1"],["116260","G.B. HEBBALI & CO. - BLOCKED","Hubli","236","CC","D1"],["116279","G.L.SHETRA","Ranebennur","236","CC","C"],["256740","GAJALAKSHMI PETROLEUM","Haveri","236","DC","E"],["219401","GANGA GANESH FILLING STATION","Medleri","236","DC","E"],["245737","GIRIJABASAVA PETROLEUM","Gajendragad","236","CC","C"],["260516","GOKAVI PETROLEUM","Gadag","236","DC","E"],["251768","GUNJIKAR ENERGIZ","Alnavar","960","DC","D2"],["176182","GUNJIKAR PETROLEUMS","Alnavar","960","DC","D2"],["265004","H.M.S PETROLEUM","Haveri","236","DC","E"],["116261","H.OBHAN AUTOMOBILES","Kotgunshi","960","CC","D1"],["173944","HALADOTAR PETROLEUM","Annigeri","960","CC","D2"],["185748","HIREMATH PETROL BUNK","Guttal","236","DC","D2"],["116255","HUBBALLI FUELS","Hubli","960","DC","B"],["238159","HUBBALLI FUELS","Hubli","960","CC","B"],["178401","HUGGI PETROLEUMS","Ranebenur","236","DC","D2"],["175244","HUNASHIKATTI PETROLEUM","Hombal","236","DC","E"],["116257","I.D.BANGARSHETRA & SONS","Gadag","236","CC","C"],["174688","ILAGER FUEL CENTER","Akkialur","236","CC","D1"],["227771","ILAGER PETROLEUM","Sevalal","236","DC","D2"],["140644","ISHWAR PETROLEUM","Gajendragad","236","CC","D2"],["214288","J G PETROLEUMS","Kadampur Village","236","CC","D2"],["174691","JABBAR PETROLEUM","Dharwad","960","CC","B"],["116259","JANNU PETROLEUM","Dharwad","960","CC","B"],["210715","JANNU PETROLEUM","Ranebennur","236","DC","C"],["228431","JANNU PETROLEUM","Hirekerur","236","DC","D2"],["172069","JAYALAXMI PETROLEUMS","Hubli","960","CC","B"],["184191","JAYAM PETROLEUM","Hubli","960","CC","D1"],["247302","JEEVANKANTI PETROLEUMS","Kusugal","960","CC","C"],["116264","JYOTHI SERVICE STATION","Hubli","960","DC","B"],["262020","KAKI HIGHWAY FUELING PLAZA","Haveri","236","CC","D1"],["163404","KALLUR PETROLEUM","Hubli","960","CC","B"],["170107","KARTRU FAKEERESHWAR SERVICE CENTRE","Shirhatti Taluk","236","CC","D2"],["218199","KARUDI SMART FUELS","Lakkikoppa","236","DC","D2"],["183534","KEERTI PETROLEUMS","Alagwadi","960","DC","E"],["116266","KUNDGOL T.A.P.C.M SOCIETY","Kundgol","960","DC","C"],["116269","MAGAVI CITY FUELS","Haveri Town","236","CC","D2"],["255985","MAHALAXMI FUEL CENTER","Varur","960","CC","D1"],["245274","MAHALAXMI FUEL PARK","Kalghatgi","960","DC","C"],["255143","MALAGI PETROLEUM","Haveri","236","DC","C"],["218200","MALLIKARJUN PETROL PUMP","Walageri","236","DC","D2"],["185442","MRUTHYUNJAYA PETROLEUMS","Savanur","236","DC","D2"],["176376","MSTONES","Hubli","960","CC","B"],["181600","NAIKAR PETROLEUM","Shivalli","960","DC","E"],["228508","NAMAKKAL GANESH FUELS","Thirumalakoppa","960","DC","D1"],["226534","NEERALAGI PETROLEUM","Shelwadi","960","CC","D2"],["146845","NETRAVATHI SERVICE STATION","Byadagi","236","CC","D2"],["183537","NIKHIL PETROLEUMS","Havanur","236","DC","E"],["176373","NIMBA CITY PETROLEUM","Haveri","236","CC","D1"],["261912","NIMBANNAVAR FUELS","Kalghatgi","960","CC","D1"],["195314","NOOR PETROLEUM","Chikkerur","236","DC","E"],["163073","OM SAI RAM PETROLEUM","Hubli","960","CC","B"],["183536","P. V. PETROLEUMS","Nargund","960","DC","D1"],["147239","P.C.KUBIHAL & BROS.FUELLING STATION","Muthalli","236","DC","E"],["116276","PARIMALA ENTERPRISES","Kumarapatnam","236","CC","D2"],["244925","PARVATI PETROLEUMS","Mishrikoti","960","CC","C"],["215922","PAVANAJA PETROLEUM","Kulenur, Sangur","236","DC","D1"],["184193","PAWAR PETROLEUM","Dharwad","960","CC","B"],["256888","PAWAR PETROLEUM ADHOC","Dharwad","960","CC","B"],["179741","PENTAGON PETROLEUM","Belur","960","DC","C"],["143608","PUJAR PETROLEUMS","Guttal","236","CC","D2"],["196368","R P GULMI PETROLEUM","Haveri","236","CC","D1"],["246387","R.H.PETROLEUM","Gadag","236","CC","D2"],["240973","RADDI PETROLEUM","Sirguppi","960","DC","D1"],["128824","RENUKA PETROLEUM","Hubli","960","CC","B"],["228312","RENUKADEVI PETROLEUMS","Bellatti","236","DC","E"],["188223","S D ATAWALAGI","Sangur","236","DC","D1"],["176375","S. S. KULKARNI PETROLEUM","Dharwad","960","CC","B"],["116275","S.C. NAREGAL","Dharwad","960","CC","B"],["116278","S.G.PATIL & CO","Shiggaon","236","CC","D1"],["116272","S.M. MIRJANKAR & CO.","Hubli","960","CC","B"],["116273","S.M. MIRJANKAR & CO. -BLOCKED","Hubli","236","CC","B"],["241740","S.S.B PETROLEUM'S","Mundargi","236","DC","E"],["203507","SAANVI PETROLEUMS","Kurtkoti","236","CC","E"],["183949","SANGMESHWAR PETROLEUMS","Hubli","960","CC","B"],["215036","SAROJA PETROLEUMS","Mundargi","236","DC","D2"],["239042","SEVALAL PETROLIUMS","Beldahadi","236","CC","E"],["182646","SHANMUKH PETROLEUM","Mugad","960","DC","D2"],["173945","SHASHANK PETROLEUMS","Hulgur","236","DC","D2"],["156576","SHIVAM PETROLEUM","Gadag","236","CC","D1"],["258703","SHIVASHAKTI ENTERPRISES","Bu Hulikatti","960","CC","D2"],["225047","SHIVASHAKTI PETROLEUM","Haveri","236","CC","C"],["116270","SHREE BASAWESHWER AUTO SERVICES","Morab","960","DC","E"],["247266","SHREE BHAVANI RENUKA PETROLEUM","Pale","960","CC","D1"],["173942","SHREE DEVI PETROLEUM","Badami Road Ron","960","CC","D2"],["255817","SHREE GURU ADAVISWAMI PETROLEUMS","Bujruk Tarlaghatta","960","DC","E"],["143741","SHREE JAGADGURU TONTADARYA PRASAD N","Gadag","236","CC","D2"],["176377","SHREE KANAKA PETROLEUM","Tangod","236","DC","E"],["250870","SHREE LAXMI PETROLEUM","Haveri","236","DC","C"],["177876","SHREE MALLIKARJUN TRADING CO.","Mundargi","236","DC","D2"],["183503","SHREE NIDHI PETROLEUM","Tadkod","960","DC","D2"],["266578","SHREE RENUKADEVI PETROLEUMS","Uppinbedagiri","960","CC","D2"],["173943","SHREE REVANSHIDDESHWAR PETROLEUMS","Konnur","960","CC","D2"],["219426","SHREE SAI PETROLS","Betgeri","236","DC","C"],["175634","SHREE SIDDHALINGESHWARA PETROLEUM","Tiralapur","960","DC","E"],["174577","SHREE TULAJABHAVANI PETROLEUM","Hangal","236","CC","D2"],["140923","SHREYA AGENCY","Mundargi","236","CC","D2"],["185865","SHRI AMARESHWAR PETROLEUM","Gajendragad","236","DC","D1"],["214016","SHRI ANJANEYA SMART FUELS","Ranebennur","236","CC","C"],["248098","SHRI DHANESHWARI PETROLEUM","Gadag","236","DC","D1"],["183539","SHRI GUDDADA ODEYA PETROLEUMS","Devaragudda","236","DC","E"],["160151","SHRI GURUKARIBASAVESHWARA F S","Tuminkatte","236","CC","E"],["226421","SHRI KAMAGIRI PETROLEUM","Shantageri","236","CC","E"],["175245","SHRI LAXMI VENKATESHWAR PETROLEUM","Nalavadi","960","DC","E"],["219216","SHRI MAHALAXMI PETROLEUMS- 1","Kalghatgi","960","CC","D1"],["178378","SHRI MALATESH OIL TRADERS","Ratihalli","236","DC","E"],["183501","SHRI MALTESH PETROLEUMS","Neglur","236","DC","E"],["147490","SHRI VIGNESHWAR TRADERS","Adergunchi","960","DC","E"],["214239","SHRI VINAYAK PETROLEUMS","Gadag","236","DC","C"],["206094","SHRIMAHALAXMI PETROLEUM","Dharwad","960","DC","B"],["264574","SIMBA SABEEL YAVAGAL PETROLEUM","Haveri","236","CC","D1"],["210539","SMT SUSHEELAMMA.S.PATIL MEMORIAL","Gangapur","236","DC","E"],["179740","SMT. GANGAMMA S. PATIL MEMORIAL","Bagewadi","236","DC","D2"],["217267","SRI BASAVA FILLING STATION","Mundargi","236","DC","E"],["178311","SRI BASAVESHWAR PETROLEUMS","Haunsabhavi","236","DC","D2"],["259879","SRI DEVI ENERGY STATION","Haveri","236","CC","D1"],["174819","SRI GURUSIDDAPRABHUDEVARU PETROLEUM","Dharwad","960","CC","B"],["225352","SRI JAGAJYOTI BASAVESHWAR PETROLEUM","Gudgeri","960","CC","C"],["255199","SRI KANTESHA FUEL STATION","Haveri","236","CC","C"],["256743","SRI LAKSHMI VENKATESHWARA PETROLEUM","Ranebennur","236","CC","E"],["251824","SRI MAILARLINGESHWARA PETROLEUMS","Haveri","236","DC","D2"],["185448","SRI MALTESH PETROLEUM","Agadi","236","DC","D2"],["246386","SRI SAI FUEL STATION","Haveri","236","CC","D1"],["157520","SRI SAI PETROLEUM","Hubli","960","CC","D1"],["159799","SRI SIDDHA RUDHA PETROLEUM","Hubli","960","CC","B"],["174689","SRI VEERABHADRESHWAR PETROLEUMS","Bankapur","236","DC","D2"],["146461","SRI. VEERABHADRESHWAR PETROLEUMS","Hirekerur","236","DC","C"],["261146","SRINIVASA FUEL PARK","Konnur","960","DC","D1"],["223544","SRINIVASA PETROLEUM","Dharwad","960","CC","B"],["116267","T.A.KURATTI","Navalgund","960","DC","D1"],["116271","T.B.MANVI & SONS","Laxmeshwar","236","CC","D2"],["163252","THE GSE&SS CO-OP SOCIETY LTD.","Dharwad","960","CC","B"],["232688","TONGALI PETROLEUM","Hubli","960","DC","B"],["268824","TRIDAIVA PETROLEUM","Arekurahatti","960","DC","D1"],["221738","UPPIN MASTER PETROLEUM","Karagudari","236","DC","D2"],["155543","V. T. FUEL STATION","Shelawadi Village","960","CC","E"],["176374","VAISHNAVI PETROLEUMS","Hubli","960","CC","B"],["259016","VEERABHADRESHWAR PETROLEUM","Haveri","236","DC","E"],["171700","VEERABHADRESWAR PETROLEUM SERVICES","Haveri Bypass","236","CC","D1"],["222701","VEERALINGAYYANAMATH AND COMPANY","Gadag","236","DC","D2"],["216999","VIJAY PETROLEUMS","Mundargi","236","DC","D2"],["221680","VIMALESHWARA PETROL PUMP","Kodamaggi Village","236","DC","D1"],["116282","WESTERN GARAGE","Hubli","960","CC","B"],["224667","YASHODHARA PETROLEUMS","Dharwad","960","CC","C"],["261179","YATTINAHALLI PETROLEUM","Haveri","236","DC","D2"]];
+const master = MASTER_RAW.map(([code,name,city,sg,cat,cls]) => ({code,name,city,sg,cat,cls}));
+
+const SAMPLE_STATE = {
+  roCode:"170051",
+  visit:{date:today(), purpose:"Automation (MPD/ATG) check"},
+  points:[
+    {text:"MPD-2, nozzle 3 (MS) showing short delivery of 40 ml in 5 L measure. Vendor to recalibrate and get Legal Metrology re-stamping arranged.", area:"MPD / Dispensing", by:"Vendor", target:plusDays(3)},
+    {text:"ATG probe of Tank-2 (HSD) not communicating with the FCC since 24 Sep. Probe cable gland found loose; vendor to replace gland and restore communication.", area:"ATG / Automation", by:"Vendor", target:plusDays(2)},
+    {text:"Two DCP fire extinguishers (9 kg) at forecourt due for refilling. Dealer to get them refilled and display the refill tags.", area:"Safety", by:"Dealer", target:plusDays(7)},
+    {text:"Earth pit resistance readings to be recorded and displayed on the earth pit board.", area:"Electrical / DG", by:"Dealer", target:plusDays(15)}
+  ],
+  remarks:"UPS battery backup checked and found satisfactory (approx. 45 min).",
+  sig:{
+    eo:{name:"Bhupesh Kumar Bajiya", desig:"Assistant Executive Engineer (Retail)", org:"BPCL, Belgaum Territory", img:""},
+    vendor:{name:"Ravi Teli", desig:"Service Engineer", org:"Sample Automation Services Pvt Ltd", img:""},
+    dealer:{name:"", desig:"Dealer / Proprietor", org:"", img:""}
+  }
+};
+
+let state = store.get("mom_draft_v2", null) || structuredClone(SAMPLE_STATE);
+let register = store.get("mom_register", []);
+let editIdx = -1;
+
+const save = () => store.set("mom_draft_v2", state);
+const currentRO = () => master.find(r => r.code === state.roCode) || null;
+const momNo = () => { const ro = currentRO(); return `MOM/${ro ? ro.code : "RO"}/${(state.visit.date||today()).replace(/-/g,"")}`; };
+
+/* ---------- master ---------- */
+function renderROSelect(){
+  const q = $("#roSearch").value.trim().toLowerCase();
+  const list = master.filter(r => !q || [r.code,r.name,r.city,"sg "+r.sg,r.cat,r.cls].join(" ").toLowerCase().includes(q));
+  const byD = {};
+  list.forEach(r => (byD["Sales Group " + r.sg] ||= []).push(r));
+  const sel = $("#roSelect");
+  let html = `<option value="">— Select RO (${list.length}) —</option>`;
+  Object.keys(byD).sort().forEach(d => {
+    html += `<optgroup label="${esc(d)}">` + byD[d].sort((a,b)=>a.name.localeCompare(b.name)).map(r => `<option value="${esc(r.code)}">${esc(r.name)} · ${esc(r.city)} (${esc(r.code)})</option>`).join("") + `</optgroup>`;
+  });
+  sel.innerHTML = html;
+  sel.value = list.some(r => r.code === state.roCode) ? state.roCode : "";
+  if(q && list.length === 1 && sel.value !== list[0].code){ sel.value = list[0].code; pickRO(list[0].code); }
+}
+function renderROCard(){
+  const ro = currentRO();
+  const f = (k,v,mono) => `<div><dt>${k}</dt><dd class="${mono?"mono":""}">${esc(v || "—")}</dd></div>`;
+  $("#roCard").innerHTML = ro
+    ? f("RO code", ro.code, 1) + f("RO name", ro.name) + f("City", ro.city) + f("Sales Group", ro.sg, 1) + f("RO control cat.", ro.cat) + f("Class of market", ro.cls)
+    : `<div style="grid-column:1/-1;color:var(--muted)">Select a Retail Outlet to load its details.</div>`;
+}
+function pickRO(code){
+  state.roCode = code;
+  const ro = currentRO();
+  if(ro && state.sig.dealer.org !== ro.name){ state.sig.dealer.org = ro.name; state.sig.dealer.name = ""; state.sig.dealer.img = ""; syncSigFields(); paintPad("dealer"); renderStatus(); }
+  renderROCard(); renderHeader(); save();
+}
+$("#roSearch").addEventListener("input", renderROSelect);
+$("#roSelect").addEventListener("change", e => pickRO(e.target.value));
+
+/* ---------- visit ---------- */
+const vMap = {vDate:"date", vPurpose:"purpose"};
+Object.entries(vMap).forEach(([id,k]) => $("#"+id).addEventListener("input", e => { state.visit[k] = e.target.value; renderHeader(); save(); }));
+$("#remarks").addEventListener("input", e => { state.remarks = e.target.value; save(); });
+
+/* ---------- points ---------- */
+function renderPoints(){
+  const ol = $("#pList");
+  $("#ptCount").textContent = state.points.length ? `${state.points.length} point${state.points.length>1?"s":""}` : "";
+  if(!state.points.length){ ol.innerHTML = `<li class="empty" style="display:block">No points yet. Type the first observation above and press Add point.</li>`; return; }
+  ol.innerHTML = state.points.map((p,i) => `
+    <li class="${i===editIdx?"editing":""}">
+      <div class="pn">${String(i+1).padStart(2,"0")}</div>
+      <div><div class="ptxt">${esc(p.text)}</div>
+        <div class="pmeta"><span class="chip">${esc(p.area)}</span><span class="chip by-${esc(p.by)}">Action: ${esc(p.by)}</span>${p.target?`<span class="chip mono">By ${fmtDate(p.target)}</span>`:""}</div></div>
+      <div class="pact">
+        <button class="ghost" data-a="up" data-i="${i}" aria-label="Move up" ${i===0?"disabled":""}>↑</button>
+        <button class="ghost" data-a="down" data-i="${i}" aria-label="Move down" ${i===state.points.length-1?"disabled":""}>↓</button>
+        <button class="ghost" data-a="edit" data-i="${i}">Edit</button>
+        <button class="ghost" data-a="del" data-i="${i}" aria-label="Delete" style="color:var(--danger)">✕</button>
+      </div>
+    </li>`).join("");
+}
+function resetComposer(){ editIdx = -1; $("#pText").value = ""; $("#pDate").value = ""; $("#addPt").textContent = "Add point"; $("#cancelEdit").hidden = true; $("#compLabel").textContent = "Point / observation"; renderPoints(); }
+function addPoint(){
+  const text = $("#pText").value.trim();
+  if(!text){ $("#pText").focus(); toast("Type the point first."); return; }
+  const p = {text, area:$("#pArea").value, by:$("#pBy").value, target:$("#pDate").value};
+  if(editIdx >= 0){ state.points[editIdx] = p; toast(`Point ${editIdx+1} updated`); } else state.points.push(p);
+  save(); resetComposer(); renderStatus(); $("#pText").focus();
+}
+$("#addPt").addEventListener("click", addPoint);
+$("#cancelEdit").addEventListener("click", resetComposer);
+$("#pText").addEventListener("keydown", e => { if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); addPoint(); } });
+$("#pList").addEventListener("click", e => {
+  const b = e.target.closest("button[data-a]"); if(!b) return;
+  const i = +b.dataset.i, a = b.dataset.a, P = state.points;
+  if(a === "up" && i > 0){ [P[i-1],P[i]] = [P[i],P[i-1]]; }
+  if(a === "down" && i < P.length-1){ [P[i+1],P[i]] = [P[i],P[i+1]]; }
+  if(a === "del"){ const [gone] = P.splice(i,1); if(editIdx===i) resetComposer(); toast(`Deleted point ${i+1}`); }
+  if(a === "edit"){
+    editIdx = i; const p = P[i];
+    $("#pText").value = p.text; $("#pArea").value = p.area; $("#pBy").value = p.by; $("#pDate").value = p.target || "";
+    $("#addPt").textContent = "Update point"; $("#cancelEdit").hidden = false; $("#compLabel").textContent = `Editing point ${i+1}`;
+    $("#pText").focus();
+  }
+  save(); renderPoints(); renderStatus();
+});
+
+/* ---------- signatures ---------- */
+const SIGS = [
+  {k:"eo", label:"Engineering Officer", orgPh:"BPCL, Belgaum Territory"},
+  {k:"vendor", label:"Vendor / Representative", orgPh:"Vendor company"},
+  {k:"dealer", label:"Dealer", orgPh:"RO name"}
+];
+const pads = {};
+function buildSigs(){
+  $("#sigs").innerHTML = SIGS.map(s => `
+    <div class="sig">
+      <div class="sig-h"><span>${s.label}</span><button class="ghost sm" type="button" data-clear="${s.k}">Clear</button></div>
+      <div class="pad-wrap" id="wrap-${s.k}"><canvas id="pad-${s.k}" aria-label="${s.label} signature pad"></canvas><div class="base"></div><div class="ph">Sign here</div></div>
+      <div class="sig-f">
+        <input id="sn-${s.k}" placeholder="Name" aria-label="${s.label} name">
+        <input id="sd-${s.k}" placeholder="Designation" aria-label="${s.label} designation">
+        <input id="so-${s.k}" placeholder="${s.orgPh}" aria-label="${s.label} organisation">
+      </div>
+    </div>`).join("");
+  SIGS.forEach(s => {
+    [["sn","name"],["sd","desig"],["so","org"]].forEach(([p,f]) => $(`#${p}-${s.k}`).addEventListener("input", e => { state.sig[s.k][f] = e.target.value; save(); renderStatus(); }));
+    initPad(s.k);
+  });
+  $("#sigs").addEventListener("click", e => { const k = e.target.dataset?.clear; if(k){ state.sig[k].img = ""; paintPad(k); save(); renderStatus(); } });
+  syncSigFields();
+}
+function syncSigFields(){ SIGS.forEach(s => { const g = state.sig[s.k]; $(`#sn-${s.k}`).value = g.name||""; $(`#sd-${s.k}`).value = g.desig||""; $(`#so-${s.k}`).value = g.org||""; }); }
+function paintPad(k){
+  const c = pads[k].c, ctx = c.getContext("2d"), dpr = window.devicePixelRatio || 1;
+  const w = c.clientWidth, h = c.clientHeight; if(!w) return;
+  c.width = Math.round(w*dpr); c.height = Math.round(h*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle = "#fff"; ctx.fillRect(0,0,w,h);
+  ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#0B2A6F"; ctx.lineWidth = 2.2;
+  const img = state.sig[k].img;
+  $("#wrap-"+k).classList.toggle("signed", !!img);
+  if(img){ const im = new Image(); im.onload = () => ctx.drawImage(im,0,0,w,h); im.src = img; }
+}
+function initPad(k){
+  const c = $("#pad-"+k); pads[k] = {c};
+  let drawing = false, last = null, moved = false;
+  const pos = e => { const r = c.getBoundingClientRect(); return {x:e.clientX - r.left, y:e.clientY - r.top}; };
+  c.addEventListener("pointerdown", e => { drawing = true; moved = false; last = pos(e); c.setPointerCapture(e.pointerId); $("#wrap-"+k).classList.add("signed"); });
+  c.addEventListener("pointermove", e => {
+    if(!drawing) return; const p = pos(e), ctx = c.getContext("2d");
+    ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last = p; moved = true;
+  });
+  const end = () => { if(!drawing) return; drawing = false; if(moved){ state.sig[k].img = c.toDataURL("image/png"); save(); renderStatus(); } else if(!state.sig[k].img) $("#wrap-"+k).classList.remove("signed"); };
+  c.addEventListener("pointerup", end); c.addEventListener("pointercancel", end);
+}
+let rT; window.addEventListener("resize", () => { clearTimeout(rT); rT = setTimeout(() => Object.keys(pads).forEach(paintPad), 150); });
+
+/* ---------- header / status ---------- */
+function renderHeader(){ $("#momNo").textContent = momNo(); }
+function checks(){
+  return [
+    ["RO selected", !!currentRO()],
+    [`${state.points.length} point${state.points.length===1?"":"s"}`, state.points.length > 0],
+    ["EO signed", !!state.sig.eo.img],
+    ["Vendor signed", !!state.sig.vendor.img],
+    ["Dealer signed", !!state.sig.dealer.img]
+  ];
+}
+function renderStatus(){ $("#status").innerHTML = checks().map(([t,ok]) => `<span class="dot ${ok?"on":""}">${esc(t)}</span>`).join(""); }
+
+function fillForm(){
+  $("#vDate").value = state.visit.date || ""; $("#vPurpose").value = state.visit.purpose || "Routine inspection";
+  $("#remarks").value = state.remarks || "";
+  syncSigFields(); Object.keys(pads).forEach(paintPad);
+}
+
+/* ---------- preview ---------- */
+function renderPaper(){
+  const ro = currentRO() || {}; const v = state.visit; const S = state.sig;
+  const row = (a,b,c,d) => `<tr><td class="k">${a}</td><td>${esc(b)||"—"}</td><td class="k">${c}</td><td>${esc(d)||"—"}</td></tr>`;
+  const sigBox = (lbl, g) => `<div><div class="who">${lbl}</div><div class="img">${g.img?`<img src="${g.img}" alt="">`:`<span class="miss">Not signed</span>`}</div><div class="nm">${esc(g.name)||"&nbsp;"}</div><div class="ds">${esc(g.desig)||"&nbsp;"}</div><div class="ds">${esc(g.org)||"&nbsp;"}</div></div>`;
+  $("#paper").innerHTML = `
+    <div class="ph1"><div><div class="org">BHARAT PETROLEUM CORPORATION LIMITED</div><div class="sub">Retail Business · Belgaum Territory · Engineering</div></div>
+      <div class="sub" style="text-align:right">MoM No.: <b>${esc(momNo())}</b><br>Date: <b>${fmtDate(v.date)}</b></div></div>
+    <div class="doc-t">MINUTES OF MEETING — RO SITE VISIT</div>
+    <table>${row("RO Code", ro.code, "RO Name", ro.name)}${row("City", ro.city, "Sales Group", ro.sg)}</table>
+    <div class="sec-t">Present</div>
+    <table><tr><th style="width:6%">#</th><th>Name</th><th>Designation</th><th>Organisation</th></tr>
+      ${[S.eo,S.vendor,S.dealer].map((g,i)=>`<tr><td>${i+1}</td><td>${esc(g.name)||"—"}</td><td>${esc(g.desig)||"—"}</td><td>${esc(g.org)||"—"}</td></tr>`).join("")}</table>
+    <div class="sec-t">Points discussed / observations</div>
+    <table><tr><th style="width:6%">#</th><th>Point / Observation</th><th style="width:15%">Area</th><th style="width:11%">Action by</th><th style="width:13%">Target date</th></tr>
+      ${state.points.length ? state.points.map((p,i)=>`<tr><td>${i+1}</td><td style="white-space:pre-wrap">${esc(p.text)}</td><td>${esc(p.area)}</td><td>${esc(p.by)}</td><td>${fmtDate(p.target)||"—"}</td></tr>`).join("") : `<tr><td colspan="5" style="color:#888">No points recorded</td></tr>`}</table>
+    ${state.remarks?`<div class="sec-t">Remarks</div><div style="white-space:pre-wrap">${esc(state.remarks)}</div>`:""}
+    <div class="psig">${sigBox("Engineering Officer (BPCL)", S.eo)}${sigBox("Vendor / Representative", S.vendor)}${sigBox("Dealer", S.dealer)}</div>
+    <div class="foot"><span>The above points were discussed and agreed at site.</span><span>Generated ${new Date().toLocaleString("en-IN")}</span></div>`;
+  $("#checklist").innerHTML = checks().map(([t,ok]) => `<span class="${ok?"ok":""}">${ok?"✓":"!"} ${esc(t)}</span>`).join("");
+}
+$("#prevBtn").addEventListener("click", () => { renderPaper(); $("#driveNote").hidden = true; $("#modal").hidden = false; });
+$("#closePrev").addEventListener("click", () => $("#modal").hidden = true);
+$("#driveBtn").addEventListener("click", () => $("#driveNote").hidden = !$("#driveNote").hidden);
+document.addEventListener("keydown", e => { if(e.key === "Escape") $("#modal").hidden = true; });
+
+/* ---------- PDF ---------- */
+function buildPdf(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:"mm", format:"a4"});
+  const ro = currentRO() || {}, v = state.visit, S = state.sig;
+  const W = 210, M = 12, brand = [14,59,92];
+  doc.setFont("helvetica","bold"); doc.setFontSize(13); doc.setTextColor(...brand);
+  doc.text("BHARAT PETROLEUM CORPORATION LIMITED", M, 16);
+  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(75,89,99);
+  doc.text("Retail Business | Belgaum Territory | Engineering", M, 21);
+  doc.text(`MoM No.: ${momNo()}`, W-M, 16, {align:"right"});
+  doc.text(`Date: ${fmtDate(v.date)}`, W-M, 21, {align:"right"});
+  doc.setDrawColor(...brand); doc.setLineWidth(0.6); doc.line(M, 24, W-M, 24);
+  doc.setFont("helvetica","bold"); doc.setFontSize(11.5); doc.setTextColor(17,24,32);
+  doc.text("MINUTES OF MEETING - RO SITE VISIT", W/2, 31, {align:"center"});
+
+  const base = {theme:"grid", styles:{font:"helvetica", fontSize:9, cellPadding:1.8, lineColor:[201,209,216], lineWidth:0.2, textColor:[17,24,32], valign:"top"}, headStyles:{fillColor:[233,238,242], textColor:[17,24,32], fontStyle:"bold", fontSize:8.5}, margin:{left:M, right:M}};
+  const k = t => ({content:t, styles:{fontStyle:"bold", fillColor:[244,246,248]}});
+  doc.autoTable({...base, startY:35, body:[
+    [k("RO Code"), ro.code||"-", k("RO Name"), ro.name||"-"],
+    [k("City"), ro.city||"-", k("Sales Group"), ro.sg||"-"]
+  ], columnStyles:{0:{cellWidth:28},2:{cellWidth:28}}});
+
+  const secT = (t, y) => { doc.setFont("helvetica","bold"); doc.setFontSize(9.5); doc.setTextColor(...brand); doc.text(t.toUpperCase(), M, y); };
+  let y = doc.lastAutoTable.finalY + 7; secT("Present", y);
+  doc.autoTable({...base, startY:y+2, head:[["#","Name","Designation","Organisation"]],
+    body:[S.eo,S.vendor,S.dealer].map((g,i)=>[i+1, g.name||"-", g.desig||"-", g.org||"-"]), columnStyles:{0:{cellWidth:9}}});
+
+  y = doc.lastAutoTable.finalY + 7; secT("Points discussed / observations", y);
+  doc.autoTable({...base, startY:y+2, head:[["#","Point / Observation","Area","Action by","Target date"]],
+    body: state.points.length ? state.points.map((p,i)=>[i+1, p.text, p.area, p.by, fmtDate(p.target)||"-"]) : [["-","No points recorded","","",""]],
+    columnStyles:{0:{cellWidth:9},2:{cellWidth:30},3:{cellWidth:20},4:{cellWidth:22}}});
+  y = doc.lastAutoTable.finalY;
+
+  if(state.remarks){
+    const lines = doc.splitTextToSize(state.remarks, W-2*M);
+    if(y + 12 + lines.length*4.2 > 280){ doc.addPage(); y = 16; }
+    secT("Remarks", y+7); doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(17,24,32);
+    doc.text(lines, M, y+12); y = y + 12 + lines.length*4.2;
+  }
+
+  const boxH = 50; if(y + 10 + boxH > 285){ doc.addPage(); y = 14; }
+  y += 8; const gap = 5, bw = (W - 2*M - 2*gap)/3;
+  [["ENGINEERING OFFICER (BPCL)", S.eo],["VENDOR / REPRESENTATIVE", S.vendor],["DEALER", S.dealer]].forEach(([lbl,g],i) => {
+    const x = M + i*(bw+gap);
+    doc.setDrawColor(201,209,216); doc.setLineWidth(0.2); doc.rect(x, y, bw, boxH);
+    doc.setFont("helvetica","bold"); doc.setFontSize(7.5); doc.setTextColor(75,89,99); doc.text(lbl, x+2.5, y+5);
+    if(g.img){
+      const c = pads[["eo","vendor","dealer"][i]].c, ratio = (c.clientHeight || 150) / (c.clientWidth || 300);
+      let iw = bw - 6, ih = iw * ratio; if(ih > 22){ ih = 22; iw = ih / ratio; }
+      doc.addImage(g.img, "PNG", x + (bw - iw)/2, y + 7, iw, ih);
+    }
+    else { doc.setFont("helvetica","italic"); doc.setFontSize(8); doc.setTextColor(179,38,30); doc.text("Not signed", x+bw/2, y+20, {align:"center"}); }
+    doc.setDrawColor(140,152,162); doc.line(x+3, y+30, x+bw-3, y+30);
+    doc.setTextColor(17,24,32); doc.setFont("helvetica","bold"); doc.setFontSize(9);
+    doc.text(doc.splitTextToSize(g.name||" ", bw-5)[0], x+2.5, y+35);
+    doc.setFont("helvetica","normal"); doc.setFontSize(8);
+    doc.text(doc.splitTextToSize(g.desig||" ", bw-5).slice(0,2), x+2.5, y+39.5);
+    doc.setTextColor(75,89,99); doc.text(doc.splitTextToSize(g.org||" ", bw-5).slice(0,1), x+2.5, y+47);
+  });
+
+  const n = doc.getNumberOfPages();
+  for(let p=1; p<=n; p++){
+    doc.setPage(p); doc.setFont("helvetica","normal"); doc.setFontSize(7.5); doc.setTextColor(107,119,128);
+    doc.text("The above points were discussed and agreed at site.", M, 292);
+    doc.text(`${momNo()}  |  Page ${p} of ${n}`, W-M, 292, {align:"right"});
+  }
+  return doc;
+}
+
+/* ---------- downloads ---------- */
+let dl = null;
+(async () => { try{ dl = await window.claude?.use?.("downloads"); }catch(e){ dl = null; } })();
+async function saveFile(filename, data){
+  if(dl){
+    try{ await dl.save({filename, data}); toast(`Saved ${filename}`); return true; }
+    catch(e){ toast(e?.code === "declined" ? "Download cancelled" : "Download isn't available here."); return false; }
+  }
+  try{
+    const blob = data instanceof Blob ? data : new Blob([data], {type:"text/csv"});
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+    toast(`Saved ${filename}`); return true;
+  }catch(e){ toast("Download isn't available here."); return false; }
+}
+async function downloadPdf(){
+  if(!currentRO()){ toast("Select a Retail Outlet first."); return; }
+  if(!state.points.length){ toast("Add at least one discussion point."); return; }
+  if(!window.jspdf){ toast("PDF engine is still loading. Try again in a moment."); return; }
+  const ro = currentRO();
+  const fname = `MoM_${ro.code}_${(ro.name||"").replace(/[^A-Za-z0-9]+/g,"_")}_${fmtDate(state.visit.date)}.pdf`;
+  const ok = await saveFile(fname, buildPdf().output("blob"));
+  if(ok){
+    const entry = {no:momNo(), date:state.visit.date, code:ro.code, name:ro.name, sg:ro.sg, city:ro.city, purpose:state.visit.purpose, vendor:state.sig.vendor.org, pts:state.points.length};
+    register = register.filter(r => r.no !== entry.no); register.unshift(entry); store.set("mom_register", register); renderRegister();
+  }
+}
+$("#pdfBtn").addEventListener("click", downloadPdf);
+$("#pdfBtn2").addEventListener("click", downloadPdf);
+
+/* ---------- register ---------- */
+const csvCell = v => { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; };
+function renderRegister(){
+  $("#regBody").innerHTML = register.length ? register.map(r => `<tr><td class="mono">${fmtDate(r.date)}</td><td class="mono">${esc(r.no)}</td><td>${esc(r.code)} · ${esc(r.name)}</td><td>${esc(r.city)}</td><td>${esc(r.purpose)}</td><td>${esc(r.vendor)}</td><td class="n">${r.pts}</td></tr>`).join("")
+    : `<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:16px">No MoMs yet. Download a MoM PDF and it will be listed here.</td></tr>`;
+  $("#regCsv").disabled = !register.length;
+}
+$("#regCsv").addEventListener("click", () => {
+  const head = ["Visit Date","MoM No","RO Code","RO Name","City","Sales Group","Purpose","Vendor","No. of Points"];
+  const rows = [...register].reverse().map(r => [fmtDate(r.date), r.no, r.code, r.name, r.city, r.sg, r.purpose, r.vendor, r.pts]);
+  saveFile(`Field_visit_register_${today()}.csv`, "﻿" + [head, ...rows].map(r => r.map(csvCell).join(",")).join("\r\n"));
+});
+
+/* ---------- new MoM ---------- */
+$("#newBtn").addEventListener("click", () => {
+  const eo = {...state.sig.eo, img:""};
+  state = {roCode:"", visit:{date:today(), purpose:"Routine inspection"}, points:[], remarks:"",
+    sig:{eo, vendor:{name:"", desig:"", org:"", img:""}, dealer:{name:"", desig:"Dealer / Proprietor", org:"", img:""}}};
+  save(); resetComposer(); $("#roSearch").value = ""; renderROSelect(); renderROCard(); fillForm(); renderHeader(); renderStatus();
+  window.scrollTo({top:0, behavior:"smooth"}); toast("New MoM started. Your name and designation are kept.");
+});
+
+/* ---------- boot ---------- */
+buildSigs(); renderROSelect(); renderROCard(); fillForm(); renderPoints(); renderHeader(); renderStatus(); renderRegister();
+requestAnimationFrame(() => Object.keys(pads).forEach(paintPad));
+if(!state.sig.dealer.org && currentRO()){ state.sig.dealer.org = currentRO().name; syncSigFields(); }
+})();
+</script>
+</body>
+</html>
