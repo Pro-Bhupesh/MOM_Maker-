@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>RO Visit MoM</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1F74B5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="RO MoM">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -330,8 +338,12 @@ table.reg tr:last-child td{border-bottom:0}
       <div class="eyebrow">BPCL Retail · Belgaum Territory · Engineering</div>
       <h1>RO Visit <span>MoM</span></h1>
     </div>
-    <div class="momno">MoM No. <b id="momNo">—</b></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button type="button" class="sm primary" id="installBtn" hidden>⬇ Install app</button>
+      <div class="momno">MoM No. <b id="momNo">—</b></div>
+    </div>
   </header>
+  <div class="note" id="iosHint" hidden style="margin-bottom:12px">To install on iPhone: tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>. <button type="button" class="ghost sm" id="iosHintClose">Got it</button></div>
 
   <!-- 1. RO -->
   <section class="sec">
@@ -1567,6 +1579,27 @@ $("#newBtn").addEventListener("click", () => {
   subjectEdited = false; save(); resetComposer(); renderPhotos(); renderChecklist(); renderUpg(); renderROSelect(); renderROCard(); fillForm(); renderHeader(); renderStatus();
   window.scrollTo({top:0, behavior:"smooth"}); toast("New MoM started. EO, Sales Officer and IFMS details are kept.");
 });
+
+/* ---------- install as web app ---------- */
+(() => {
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  if((location.protocol === "https:" || location.hostname === "localhost") && "serviceWorker" in navigator){
+    navigator.serviceWorker.register("sw.js").then(reg => {
+      reg.addEventListener("updatefound", () => { const nw = reg.installing; nw && nw.addEventListener("statechange", () => { if(nw.state === "installed" && navigator.serviceWorker.controller) toast("A new version is ready. Close and reopen the app to use it."); }); });
+    }).catch(() => {});
+  }
+  if(standalone) return;
+  let deferred = null;
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; $("#installBtn").hidden = false; });
+  $("#installBtn").addEventListener("click", async () => {
+    if(deferred){ deferred.prompt(); const r = await deferred.userChoice; deferred = null; $("#installBtn").hidden = true; if(r.outcome === "accepted") toast("Installed. Open RO MoM from your home screen."); }
+    else $("#iosHint").hidden = false;
+  });
+  window.addEventListener("appinstalled", () => { $("#installBtn").hidden = true; toast("Installed. Open RO MoM from your home screen."); });
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(ios && location.protocol === "https:"){ $("#installBtn").hidden = false; }
+  $("#iosHintClose").addEventListener("click", () => $("#iosHint").hidden = true);
+})();
 
 /* ---------- boot ---------- */
 if(!Array.isArray(state.photos)) state.photos = [];
