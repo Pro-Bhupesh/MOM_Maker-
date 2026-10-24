@@ -519,10 +519,11 @@ table.reg tr:last-child td{border-bottom:0}
 
 <div class="bar"><div class="bar-in">
   <div class="status" id="status"></div>
-  <button class="ghost sm" id="newBtn" type="button">New MoM</button>
+  <button class="ghost sm" id="newBtn" type="button" title="Start a new MoM">+ New</button>
   <button id="prevBtn" type="button">Preview</button>
   <button id="shareBtn2" type="button">Email</button>
-  <button class="primary" id="pdfBtn" type="button">Download PDF</button>
+  <button id="pdfBtn" type="button">⬇ PDF</button>
+  <button class="primary" id="saveBtn" type="button">☁ Save</button>
 </div></div>
 
 <div class="gate" id="gate">
@@ -561,7 +562,8 @@ table.reg tr:last-child td{border-bottom:0}
   <div class="modal-bar">
     <h3>Preview</h3>
     <button class="sm" id="shareBtn3" type="button">Email</button>
-    <button class="sm primary" id="pdfBtn2" type="button">Download PDF</button>
+    <button class="sm" id="pdfBtn2" type="button">⬇ PDF</button>
+    <button class="sm primary" id="saveBtn2" type="button">☁ Save</button>
     <button class="sm" id="closePrev" type="button">Close</button>
   </div>
   <div class="checklist" id="checklist"></div>
@@ -795,7 +797,8 @@ let register = store.get("mom_register", []);
 let editIdx = -1;
 
 let warnedPhotos = false;
-const save = () => {
+const save = (keepSaved) => {
+  if(!keepSaved){ state.saved = ""; if(typeof renderSaveState === "function") renderSaveState(); }
   if(store.set("mom_draft_v2", state)) return;
   store.set("mom_draft_v2", {...state, photos:[]});
   if(!warnedPhotos && state.photos?.length){ warnedPhotos = true; toast("Photos are too large to keep in the saved draft. Finish and share the MoM before closing this page."); }
@@ -1168,7 +1171,7 @@ function checks(){
     ["Dealer signed", !!state.sig.dealer.img]
   ];
 }
-function renderStatus(){ $("#status").innerHTML = checks().map(([t,ok]) => `<span class="dot ${ok?"on":""}">${esc(t)}</span>`).join(""); }
+function renderStatus(){ $("#status").innerHTML = `<span id="saveState" class="dot"></span>` + checks().map(([t,ok]) => `<span class="dot ${ok?"on":""}">${esc(t)}</span>`).join(""); renderSaveState(); }
 
 function fillForm(){
   $("#vDate").value = state.visit.date || ""; $("#vPurpose").value = state.visit.purpose || "Routine inspection";
@@ -1426,10 +1429,11 @@ function readyForPdf(){
 const pdfName = () => { const ro = currentRO(); return `MoM_${ro.code}_${(ro.name||"").replace(/[^A-Za-z0-9]+/g,"_")}_${fmtDate(state.visit.date)}.pdf`; };
 let lastPdf = null;
 function logVisit(){
-  if(lastPdf) cloudSave(lastPdf);
+  let p = null; if(lastPdf){ p = cloudSave(lastPdf); lastPdf = null; }
   const ro = currentRO();
   const entry = {no:momNo(), date:state.visit.date, code:ro.code, name:ro.name, sg:ro.sg, city:ro.city, purpose:state.visit.purpose, vendor:state.sig.vendor.org, pts:obsCount()};
   register = register.filter(r => r.no !== entry.no); register.unshift(entry); store.set("mom_register", register); renderRegister();
+  return p;
 }
 async function downloadPdf(){
   if(!readyForPdf()) return;
@@ -1786,13 +1790,36 @@ async function pushRecord(rec){
   }
   await withTimeout(db.doc(rec.base).set({...rec.doc, updatedAt: firebase.firestore.FieldValue.serverTimestamp()}), 30000);
 }
+const markSaved = how => { state.saved = how; save(true); renderSaveState(); };
 async function cloudSave(pdfBlob){
   if(!user || !db || !currentRO()) return;
   const rec = buildCloudRecord(pdfBlob);
-  if(!navigator.onLine){ await outboxPut(rec); toast("No network: MoM kept on this phone and will upload automatically."); return; }
-  try{ await pushRecord(rec); toast("☁ Saved to cloud"); }
-  catch(e){ await outboxPut(rec); toast(e.code === "storage/unauthorized" || e.code === "permission-denied" ? "Cloud refused the upload. Check the Storage rules (SETUP.md)." : "Upload failed: kept on this phone, will retry automatically."); }
+  if(!navigator.onLine){ await outboxPut(rec); markSaved("phone"); toast("No network: MoM saved on this phone and will upload automatically."); return; }
+  try{ await pushRecord(rec); markSaved("cloud"); toast(`☁ ${momNo()} saved to cloud`); }
+  catch(e){ await outboxPut(rec); markSaved("phone"); toast(e.code === "storage/unauthorized" || e.code === "permission-denied" ? "Cloud refused the upload. Check the Storage rules (SETUP.md)." : "Upload failed: saved on this phone, will retry automatically."); }
 }
+/* Save button: build the PDF and save the MoM without downloading or emailing it */
+let saving = false;
+async function saveMoM(){
+  if(saving) return;
+  if(!user){ toast("Sign in to save MoMs to the cloud."); return; }
+  if(!readyForPdf()) return;
+  saving = true; ["#saveBtn","#saveBtn2"].forEach(id => { $(id).disabled = true; $(id).textContent = "Saving…"; });
+  try{
+    const blob = (await buildPdf()).output("blob"); lastPdf = blob;
+    await logVisit();
+  } finally {
+    saving = false; ["#saveBtn","#saveBtn2"].forEach(id => { $(id).disabled = false; $(id).textContent = "☁ Save"; });
+  }
+}
+function renderSaveState(){
+  const el = document.getElementById("saveState"); if(!el) return;
+  const s = state.saved;
+  el.className = "dot " + (s ? "on" : "");
+  el.textContent = s === "cloud" ? "Saved to cloud" : s === "phone" ? "Saved on phone, uploading" : "Not saved";
+}
+$("#saveBtn").addEventListener("click", saveMoM);
+$("#saveBtn2").addEventListener("click", saveMoM);
 
 /* ----- outbox in IndexedDB for MoMs finished offline ----- */
 const idb = (() => {

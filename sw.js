@@ -1,5 +1,5 @@
 /* RO Visit MoM – offline support. Bump VERSION whenever index.html changes. */
-const VERSION = "ro-mom-v3";
+const VERSION = "ro-mom-v4";
 const LOCAL = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png", "./icons/apple-touch-icon.png"];
 const CDN = [
   "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
